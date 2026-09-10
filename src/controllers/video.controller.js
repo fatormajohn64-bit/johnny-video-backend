@@ -4,6 +4,10 @@ import {
   generateAndEditVideo
 } from "../services/pipeline/video-pipeline.service.js";
 
+import {
+  validateProviderSettings
+} from "../services/pipeline/settings-validator.service.js";
+
 
 /*
 |--------------------------------------------------------------------------
@@ -37,11 +41,21 @@ export async function generate(
       });
     }
 
+    // Validate provider-specific settings
+    const validatedInput =
+      validateProviderSettings(
+        generator,
+        input
+      );
+
     const result =
       await generateVideo({
         provider: generator,
         prompt,
-        input
+        input: {
+          ...validatedInput,
+          ...input
+        }
       });
 
     res.status(202).json({
@@ -87,13 +101,20 @@ export async function edit(
       });
     }
 
+    // Validate editor settings
+    const validatedSettings =
+      validateProviderSettings(
+        editor,
+        settings
+      );
+
     let result;
 
     if (editor === "json2video") {
       result = await editVideo({
         provider: editor,
         edit: {
-          ...settings,
+          ...validatedSettings,
           videoUrl
         }
       });
@@ -103,7 +124,7 @@ export async function edit(
       result = await editVideo({
         provider: editor,
         edit: {
-          ...settings,
+          ...validatedSettings,
           videoUrl
         }
       });
@@ -168,13 +189,33 @@ export async function generateAndEdit(
       });
     }
 
+    // Validate generator settings
+    const validatedGenerationInput =
+      validateProviderSettings(
+        generator,
+        generationInput
+      );
+
+    // Validate editor settings
+    const validatedEdit =
+      validateProviderSettings(
+        editor,
+        edit
+      );
+
     const result =
       await generateAndEditVideo({
         generator,
         editor,
         prompt,
-        generationInput,
-        edit
+        generationInput: {
+          ...validatedGenerationInput,
+          ...generationInput
+        },
+        edit: {
+          ...validatedEdit,
+          ...edit
+        }
       });
 
     res.status(202).json({
