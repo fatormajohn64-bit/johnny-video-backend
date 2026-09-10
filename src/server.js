@@ -12,13 +12,16 @@ import generatorRoutes from "./routes/generator.routes.js";
 import editorRoutes from "./routes/editor.routes.js";
 import videoRoutes from "./routes/video.routes.js";
 import settingsRoutes from "./routes/settings.routes.js";
+import uploadRoutes from "./routes/upload.routes.js";
 
 import {
   notFound,
   errorHandler
 } from "./middleware/error.middleware.js";
 
+
 const app = express();
+
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +30,7 @@ const app = express();
 */
 
 app.use(helmet());
+
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +45,7 @@ app.use(
   })
 );
 
+
 /*
 |--------------------------------------------------------------------------
 | Request Body
@@ -52,6 +57,7 @@ app.use(
     limit: "10mb"
   })
 );
+
 
 /*
 |--------------------------------------------------------------------------
@@ -95,6 +101,13 @@ app.use(
   settingsRoutes
 );
 
+// Temporary video upload
+app.use(
+  "/api/upload",
+  uploadRoutes
+);
+
+
 /*
 |--------------------------------------------------------------------------
 | 404
@@ -103,6 +116,7 @@ app.use(
 
 app.use(notFound);
 
+
 /*
 |--------------------------------------------------------------------------
 | Global Error Handler
@@ -110,6 +124,7 @@ app.use(notFound);
 */
 
 app.use(errorHandler);
+
 
 /*
 |--------------------------------------------------------------------------
