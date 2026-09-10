@@ -11,6 +11,7 @@ import providerRoutes from "./routes/provider.routes.js";
 import generatorRoutes from "./routes/generator.routes.js";
 import editorRoutes from "./routes/editor.routes.js";
 import videoRoutes from "./routes/video.routes.js";
+import settingsRoutes from "./routes/settings.routes.js";
 
 import {
   notFound,
@@ -86,6 +87,12 @@ app.use(
 app.use(
   "/api/video",
   videoRoutes
+);
+
+// Provider settings
+app.use(
+  "/api/settings",
+  settingsRoutes
 );
 
 /*
