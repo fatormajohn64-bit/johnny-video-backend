@@ -1,7 +1,8 @@
 import { Router } from "express";
 
 import {
-  createUploadUrl
+  createUploadUrl,
+  getUploadStatus
 } from "../controllers/upload.controller.js";
 
 const router = Router();
@@ -9,13 +10,25 @@ const router = Router();
 
 /*
 |--------------------------------------------------------------------------
-| Create provider upload URL
+| Create upload
 |--------------------------------------------------------------------------
 */
 
 router.post(
   "/url",
   createUploadUrl
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Shotstack upload status
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+  "/shotstack/:id",
+  getUploadStatus
 );
 
 
