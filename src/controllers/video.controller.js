@@ -41,7 +41,6 @@ export async function generate(
       });
     }
 
-    // Validate provider-specific settings
     const validatedInput =
       validateProviderSettings(
         generator,
@@ -52,10 +51,7 @@ export async function generate(
       await generateVideo({
         provider: generator,
         prompt,
-        input: {
-          ...validatedInput,
-          ...input
-        }
+        input: validatedInput
       });
 
     res.status(202).json({
@@ -101,41 +97,18 @@ export async function edit(
       });
     }
 
-    // Validate editor settings
     const validatedSettings =
       validateProviderSettings(
         editor,
         settings
       );
 
-    let result;
-
-    if (editor === "json2video") {
-      result = await editVideo({
+    const result =
+      await editVideo({
         provider: editor,
-        edit: {
-          ...validatedSettings,
-          videoUrl
-        }
+        videoUrl,
+        settings: validatedSettings
       });
-    }
-
-    else if (editor === "shotstack") {
-      result = await editVideo({
-        provider: editor,
-        edit: {
-          ...validatedSettings,
-          videoUrl
-        }
-      });
-    }
-
-    else {
-      return res.status(400).json({
-        error: "UNSUPPORTED_EDITOR",
-        message: `Unsupported editor: ${editor}`
-      });
-    }
 
     res.status(202).json({
       success: true,
@@ -189,33 +162,47 @@ export async function generateAndEdit(
       });
     }
 
-    // Validate generator settings
+    /*
+    |--------------------------------------------------------------------------
+    | Validate generator settings
+    |--------------------------------------------------------------------------
+    */
+
     const validatedGenerationInput =
       validateProviderSettings(
         generator,
         generationInput
       );
 
-    // Validate editor settings
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate editor settings
+    |--------------------------------------------------------------------------
+    */
+
     const validatedEdit =
       validateProviderSettings(
         editor,
         edit
       );
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Generate → Edit
+    |--------------------------------------------------------------------------
+    */
+
     const result =
       await generateAndEditVideo({
         generator,
         editor,
         prompt,
-        generationInput: {
-          ...validatedGenerationInput,
-          ...generationInput
-        },
-        edit: {
-          ...validatedEdit,
-          ...edit
-        }
+        generationInput:
+          validatedGenerationInput,
+        edit:
+          validatedEdit
       });
 
     res.status(202).json({
@@ -227,3 +214,35 @@ export async function generateAndEdit(
     next(error);
   }
 }
+
+Important change
+
+The edit request is now clean:
+
+videoUrl
+   +
+settings
+   ↓
+validateProviderSettings()
+   ↓
+editVideo()
+   ↓
+JSON2Video Builder / Shotstack Builder
+   ↓
+API
+
+And generate + edit:
+
+prompt
+  ↓
+validate generator settings
+  ↓
+Kling / Hugging Face
+  ↓
+video
+  ↓
+validate editor settings
+  ↓
+JSON2Video / Shotstack
+
+One thing we should handle next: Hugging Face returns video data as a Blob rather than a public URL, so the automatic "generate → edit" path needs a client-upload/direct-transfer solution for HF.
