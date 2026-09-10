@@ -24,21 +24,30 @@ export async function generateHuggingFace(req, res, next) {
         input
       });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Hugging Face returns video data as a Blob.
-    |
-    | We intentionally do not save it on the backend.
-    |--------------------------------------------------------------------------
-    */
+    if (!result.video) {
+      return res.status(502).json({
+        error: "VIDEO_NOT_RETURNED",
+        message:
+          "Hugging Face did not return video data"
+      });
+    }
 
-    res.status(200).json({
-      success: true,
-      provider: "huggingface",
-      model: result.model,
-      status: result.status,
-      video: result.video
-    });
+    res.setHeader(
+      "Content-Type",
+      result.contentType || "video/mp4"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      'inline; filename="johnny-tec-video.mp4"'
+    );
+
+    const buffer =
+      Buffer.from(
+        await result.video.arrayBuffer()
+      );
+
+    res.send(buffer);
 
   } catch (error) {
     next(error);
