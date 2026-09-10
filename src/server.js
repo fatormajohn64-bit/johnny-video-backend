@@ -8,6 +8,8 @@ import { env } from "./config/env.js";
 
 import healthRoutes from "./routes/health.routes.js";
 import providerRoutes from "./routes/provider.routes.js";
+import generatorRoutes from "./routes/generator.routes.js";
+import editorRoutes from "./routes/editor.routes.js";
 
 import {
   notFound,
@@ -39,7 +41,7 @@ app.use(
 
 /*
 |--------------------------------------------------------------------------
-| JSON
+| Body Parser
 |--------------------------------------------------------------------------
 */
 
@@ -55,21 +57,33 @@ app.use(
 |--------------------------------------------------------------------------
 */
 
-// Health check
+// Health
 app.use(
   "/api/health",
   healthRoutes
 );
 
-// AI / Video providers
+// Providers
 app.use(
   "/api/providers",
   providerRoutes
 );
 
+// Video Generators
+app.use(
+  "/api/generators",
+  generatorRoutes
+);
+
+// Video Editors
+app.use(
+  "/api/editors",
+  editorRoutes
+);
+
 /*
 |--------------------------------------------------------------------------
-| 404 Handler
+| 404
 |--------------------------------------------------------------------------
 */
 
@@ -91,10 +105,22 @@ app.use(errorHandler);
 
 app.listen(env.port, () => {
   console.log(
-    `🚀 Johnny Video Backend running on port ${env.port}`
+    "========================================"
   );
 
   console.log(
-    `🌍 Environment: ${env.nodeEnv}`
+    "🚀 Johnny Tec OS Video Backend"
+  );
+
+  console.log(
+    `🌐 Port: ${env.port}`
+  );
+
+  console.log(
+    `⚙️ Environment: ${env.nodeEnv}`
+  );
+
+  console.log(
+    "========================================"
   );
 });
