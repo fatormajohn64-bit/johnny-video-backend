@@ -1,22 +1,13 @@
-import {
-  generateKlingVideo
-} from "../generators/kling.service.js";
+import { generateKlingVideo } from "../generators/kling.service.js";
+import { generateHuggingFaceVideo } from "../generators/huggingface.service.js";
 
-import {
-  generateHuggingFaceVideo
-} from "../generators/huggingface.service.js";
+import { createJson2Video } from "../editors/json2video.service.js";
+import { createShotstackRender } from "../editors/shotstack.service.js";
 
-import {
-  createJson2Video
-} from "../editors/json2video.service.js";
+import { buildJson2VideoMovie } from "../editors/json2video.builder.js";
+import { buildShotstackEdit } from "../editors/shotstack.builder.js";
 
-import {
-  createShotstackRender
-} from "../editors/shotstack.service.js";
-
-import {
-  HttpError
-} from "../../utils/http-error.js";
+import { HttpError } from "../../utils/http-error.js";
 
 
 /*
@@ -57,21 +48,44 @@ export async function generateVideo({
 
 /*
 |--------------------------------------------------------------------------
-| Edit video
+| Edit existing video
 |--------------------------------------------------------------------------
 */
 
 export async function editVideo({
   provider,
-  edit
+  videoUrl,
+  settings = {}
 }) {
+  if (!videoUrl) {
+    throw new HttpError(
+      400,
+      "videoUrl is required",
+      "VIDEO_URL_REQUIRED"
+    );
+  }
+
   switch (provider) {
 
-    case "json2video":
-      return createJson2Video(edit);
+    case "json2video": {
+      const movie =
+        buildJson2VideoMovie({
+          videoUrl,
+          settings
+        });
 
-    case "shotstack":
+      return createJson2Video(movie);
+    }
+
+    case "shotstack": {
+      const edit =
+        buildShotstackEdit({
+          videoUrl,
+          settings
+        });
+
       return createShotstackRender(edit);
+    }
 
     default:
       throw new HttpError(
@@ -85,7 +99,7 @@ export async function editVideo({
 
 /*
 |--------------------------------------------------------------------------
-| Generate → Edit
+| Generate and edit
 |--------------------------------------------------------------------------
 */
 
@@ -94,15 +108,10 @@ export async function generateAndEditVideo({
   editor,
   prompt,
   generationInput = {},
-  edit
+  edit = {}
 }) {
 
-  /*
-  |----------------------------------------------------------------------
-  | 1. Generate
-  |----------------------------------------------------------------------
-  */
-
+  // Generate
   const generated =
     await generateVideo({
       provider: generator,
@@ -110,22 +119,9 @@ export async function generateAndEditVideo({
       input: generationInput
     });
 
-
-  /*
-  |----------------------------------------------------------------------
-  | 2. Extract generated video
-  |----------------------------------------------------------------------
-  */
-
+  // Get generated video URL
   const videoUrl =
     extractVideoUrl(generated);
-
-
-  /*
-  |----------------------------------------------------------------------
-  | 3. Make sure we received a video
-  |----------------------------------------------------------------------
-  */
 
   if (!videoUrl) {
     throw new HttpError(
@@ -135,39 +131,13 @@ export async function generateAndEditVideo({
     );
   }
 
-
-  /*
-  |----------------------------------------------------------------------
-  | 4. Add generated video to editor input
-  |----------------------------------------------------------------------
-  */
-
-  const editorInput =
-    attachVideoToEditor(
-      editor,
-      edit,
-      videoUrl
-    );
-
-
-  /*
-  |----------------------------------------------------------------------
-  | 5. Send video to editor
-  |----------------------------------------------------------------------
-  */
-
+  // Edit generated video
   const edited =
     await editVideo({
       provider: editor,
-      edit: editorInput
+      videoUrl,
+      settings: edit
     });
-
-
-  /*
-  |----------------------------------------------------------------------
-  | 6. Return complete pipeline result
-  |----------------------------------------------------------------------
-  */
 
   return {
     success: true,
@@ -193,129 +163,13 @@ export async function generateAndEditVideo({
 |--------------------------------------------------------------------------
 */
 
-function extractVideoUrl(
-  generated
-) {
+function extractVideoUrl(generated) {
   return (
     generated?.data?.video?.url ||
-
     generated?.data?.video_url ||
-
     generated?.video?.url ||
-
     generated?.video_url ||
-
     generated?.result?.video?.url ||
-
     null
-  );
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| Attach video to editor
-|--------------------------------------------------------------------------
-*/
-
-function attachVideoToEditor(
-  editor,
-  edit,
-  videoUrl
-) {
-  const copy =
-    structuredClone(edit || {});
-
-
-  /*
-  |----------------------------------------------------------------------
-  | JSON2Video
-  |----------------------------------------------------------------------
-  */
-
-  if (editor === "json2video") {
-
-    if (!Array.isArray(copy.scenes)) {
-      copy.scenes = [];
-    }
-
-    if (copy.scenes.length === 0) {
-      copy.scenes.push({
-        elements: []
-      });
-    }
-
-    if (
-      !Array.isArray(
-        copy.scenes[0].elements
-      )
-    ) {
-      copy.scenes[0].elements = [];
-    }
-
-    copy.scenes[0].elements.unshift({
-      type: "video",
-      src: videoUrl
-    });
-
-    return copy;
-  }
-
-
-  /*
-  |----------------------------------------------------------------------
-  | Shotstack
-  |----------------------------------------------------------------------
-  */
-
-  if (editor === "shotstack") {
-
-    if (!copy.timeline) {
-      copy.timeline = {};
-    }
-
-    if (
-      !Array.isArray(
-        copy.timeline.tracks
-      )
-    ) {
-      copy.timeline.tracks = [];
-    }
-
-    if (
-      copy.timeline.tracks.length === 0
-    ) {
-      copy.timeline.tracks.push({
-        clips: []
-      });
-    }
-
-    if (
-      !Array.isArray(
-        copy.timeline.tracks[0].clips
-      )
-    ) {
-      copy.timeline.tracks[0].clips = [];
-    }
-
-    copy.timeline.tracks[0].clips.unshift({
-      asset: {
-        type: "video",
-        src: videoUrl
-      },
-
-      start: 0,
-
-      length: "auto"
-    });
-
-    return copy;
-  }
-
-
-  throw new HttpError(
-    400,
-    `Unsupported editor: ${editor}`,
-    "UNSUPPORTED_EDITOR"
   );
 }
