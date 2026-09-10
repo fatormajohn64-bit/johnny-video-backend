@@ -162,37 +162,17 @@ export async function generateAndEdit(
       });
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validate generator settings
-    |--------------------------------------------------------------------------
-    */
-
     const validatedGenerationInput =
       validateProviderSettings(
         generator,
         generationInput
       );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validate editor settings
-    |--------------------------------------------------------------------------
-    */
-
     const validatedEdit =
       validateProviderSettings(
         editor,
         edit
       );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Generate → Edit
-    |--------------------------------------------------------------------------
-    */
 
     const result =
       await generateAndEditVideo({
@@ -214,35 +194,3 @@ export async function generateAndEdit(
     next(error);
   }
 }
-
-Important change
-
-The edit request is now clean:
-
-videoUrl
-   +
-settings
-   ↓
-validateProviderSettings()
-   ↓
-editVideo()
-   ↓
-JSON2Video Builder / Shotstack Builder
-   ↓
-API
-
-And generate + edit:
-
-prompt
-  ↓
-validate generator settings
-  ↓
-Kling / Hugging Face
-  ↓
-video
-  ↓
-validate editor settings
-  ↓
-JSON2Video / Shotstack
-
-One thing we should handle next: Hugging Face returns video data as a Blob rather than a public URL, so the automatic "generate → edit" path needs a client-upload/direct-transfer solution for HF.
