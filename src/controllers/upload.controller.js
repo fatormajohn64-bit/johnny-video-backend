@@ -1,8 +1,15 @@
 import {
   createJson2VideoUpload,
-  createShotstackUpload
+  createShotstackUpload,
+  getShotstackUploadStatus
 } from "../services/editors/media-upload.service.js";
 
+
+/*
+|--------------------------------------------------------------------------
+| Create upload URL
+|--------------------------------------------------------------------------
+*/
 
 export async function createUploadUrl(
   req,
@@ -17,14 +24,12 @@ export async function createUploadUrl(
       size
     } = req.body || {};
 
-
     if (!provider) {
       return res.status(400).json({
         error: "PROVIDER_REQUIRED",
         message: "provider is required"
       });
     }
-
 
     if (!name) {
       return res.status(400).json({
@@ -33,14 +38,12 @@ export async function createUploadUrl(
       });
     }
 
-
     if (!contentType) {
       return res.status(400).json({
         error: "CONTENT_TYPE_REQUIRED",
         message: "contentType is required"
       });
     }
-
 
     if (!size) {
       return res.status(400).json({
@@ -49,9 +52,7 @@ export async function createUploadUrl(
       });
     }
 
-
     let result;
-
 
     if (provider === "json2video") {
       result =
@@ -62,12 +63,10 @@ export async function createUploadUrl(
         });
     }
 
-
     else if (provider === "shotstack") {
       result =
         await createShotstackUpload();
     }
-
 
     else {
       return res.status(400).json({
@@ -77,10 +76,38 @@ export async function createUploadUrl(
       });
     }
 
-
     res.status(200).json({
       success: true,
       provider,
+      upload: result
+    });
+
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Shotstack upload status
+|--------------------------------------------------------------------------
+*/
+
+export async function getUploadStatus(
+  req,
+  res,
+  next
+) {
+  try {
+    const { id } = req.params;
+
+    const result =
+      await getShotstackUploadStatus(id);
+
+    res.status(200).json({
+      success: true,
+      provider: "shotstack",
       upload: result
     });
 
