@@ -1,10 +1,6 @@
 import { InferenceClient } from "@huggingface/inference";
-
 import { env } from "../../config/env.js";
-
-import {
-  HttpError
-} from "../../utils/http-error.js";
+import { HttpError } from "../../utils/http-error.js";
 
 export async function generateHuggingFaceVideo({
   prompt,
@@ -20,7 +16,9 @@ export async function generateHuggingFaceVideo({
   }
 
   const client =
-    new InferenceClient(env.hfToken);
+    new InferenceClient(
+      env.hfToken
+    );
 
   const selectedModel =
     model || env.hfVideoModel;
@@ -34,13 +32,11 @@ export async function generateHuggingFaceVideo({
 
   return {
     success: true,
-
     provider: "huggingface",
-
     model: selectedModel,
-
     status: "completed",
-
-    video
+    video,
+    contentType:
+      video?.type || "video/mp4"
   };
 }
