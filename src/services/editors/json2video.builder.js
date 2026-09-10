@@ -2,24 +2,13 @@ export function buildJson2VideoMovie({
   videoUrl,
   settings = {}
 }) {
-  const movie = {
-    resolution:
-      settings.resolution || "full-hd",
-
-    fps:
-      settings.fps || 25,
-
-    scenes: [
-      {
-        elements: [
-          {
-            type: "video",
-            src: videoUrl
-          }
-        ]
-      }
-    ]
-  };
+  const elements = [
+    {
+      type: "video",
+      src: videoUrl,
+      resize: settings.videoResize || "cover"
+    }
+  ];
 
   /*
   |--------------------------------------------------------------------------
@@ -28,15 +17,23 @@ export function buildJson2VideoMovie({
   */
 
   if (settings.text) {
-    movie.scenes[0].elements.push({
+    elements.push({
       type: "text",
       text: settings.text,
 
-      settings:
-        settings.textSettings || {}
+      ...(settings.textStyle
+        ? {
+            style: settings.textStyle
+          }
+        : {}),
+
+      ...(settings.textSettings
+        ? {
+            settings: settings.textSettings
+          }
+        : {})
     });
   }
-
 
   /*
   |--------------------------------------------------------------------------
@@ -45,15 +42,40 @@ export function buildJson2VideoMovie({
   */
 
   if (settings.audioUrl) {
-    movie.scenes[0].elements.push({
+    elements.push({
       type: "audio",
       src: settings.audioUrl,
 
-      volume:
-        settings.audioVolume ?? 1
+      ...(settings.audioVolume !== undefined
+        ? {
+            volume: Number(settings.audioVolume)
+          }
+        : {})
     });
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Scene
+  |--------------------------------------------------------------------------
+  */
+
+  const movie = {
+    resolution:
+      settings.resolution || "full-hd",
+
+    fps:
+      settings.fps || 25,
+
+    quality:
+      settings.quality || "high",
+
+    scenes: [
+      {
+        elements
+      }
+    ]
+  };
 
   /*
   |--------------------------------------------------------------------------
@@ -62,34 +84,17 @@ export function buildJson2VideoMovie({
   */
 
   if (settings.subtitles) {
-    if (!movie.elements) {
-      movie.elements = [];
-    }
+    movie.elements = [
+      {
+        type: "subtitles",
 
-    movie.elements.push({
-      type: "subtitles",
-
-      ...(settings.subtitleLanguage
-        ? {
-            language:
-              settings.subtitleLanguage
-          }
-        : {}),
-
-      ...(settings.subtitleModel
-        ? {
-            model:
-              settings.subtitleModel
-          }
-        : {}),
-
-      ...(settings.subtitleSettings
-        ? {
-            settings:
-              settings.subtitleSettings
-          }
-        : {})
-    });
+        ...(settings.subtitleSettings
+          ? {
+              settings: settings.subtitleSettings
+            }
+          : {})
+      }
+    ];
   }
 
   return movie;
