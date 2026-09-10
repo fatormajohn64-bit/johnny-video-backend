@@ -5,6 +5,11 @@ import {
   getJson2VideoRender
 } from "../controllers/json2video.controller.js";
 
+import {
+  createShotstack,
+  getShotstack
+} from "../controllers/shotstack.controller.js";
+
 const router = Router();
 
 
@@ -22,6 +27,23 @@ router.post(
 router.get(
   "/json2video/render/:projectId",
   getJson2VideoRender
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Shotstack
+|--------------------------------------------------------------------------
+*/
+
+router.post(
+  "/shotstack/render",
+  createShotstack
+);
+
+router.get(
+  "/shotstack/render/:renderId",
+  getShotstack
 );
 
 
