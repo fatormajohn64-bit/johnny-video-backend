@@ -10,6 +10,7 @@ import healthRoutes from "./routes/health.routes.js";
 import providerRoutes from "./routes/provider.routes.js";
 import generatorRoutes from "./routes/generator.routes.js";
 import editorRoutes from "./routes/editor.routes.js";
+import videoRoutes from "./routes/video.routes.js";
 
 import {
   notFound,
@@ -53,28 +54,38 @@ app.use(
 
 /*
 |--------------------------------------------------------------------------
-| Routes
+| API Routes
 |--------------------------------------------------------------------------
 */
 
+// Health
 app.use(
   "/api/health",
   healthRoutes
 );
 
+// Providers
 app.use(
   "/api/providers",
   providerRoutes
 );
 
+// Individual generators
 app.use(
   "/api/generators",
   generatorRoutes
 );
 
+// Individual editors
 app.use(
   "/api/editors",
   editorRoutes
+);
+
+// Unified video API
+app.use(
+  "/api/video",
+  videoRoutes
 );
 
 /*
@@ -87,7 +98,7 @@ app.use(notFound);
 
 /*
 |--------------------------------------------------------------------------
-| Error Handler
+| Global Error Handler
 |--------------------------------------------------------------------------
 */
 
@@ -95,13 +106,13 @@ app.use(errorHandler);
 
 /*
 |--------------------------------------------------------------------------
-| Start
+| Start Server
 |--------------------------------------------------------------------------
 */
 
 app.listen(env.port, () => {
   console.log(
-    "===================================="
+    "========================================"
   );
 
   console.log(
@@ -117,6 +128,6 @@ app.listen(env.port, () => {
   );
 
   console.log(
-    "===================================="
+    "========================================"
   );
 });
