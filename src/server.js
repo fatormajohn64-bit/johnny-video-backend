@@ -7,6 +7,7 @@ import helmet from "helmet";
 import { env } from "./config/env.js";
 
 import healthRoutes from "./routes/health.routes.js";
+import providerRoutes from "./routes/provider.routes.js";
 
 import {
   notFound,
@@ -50,18 +51,25 @@ app.use(
 
 /*
 |--------------------------------------------------------------------------
-| Routes
+| API Routes
 |--------------------------------------------------------------------------
 */
 
+// Health check
 app.use(
   "/api/health",
   healthRoutes
 );
 
+// AI / Video providers
+app.use(
+  "/api/providers",
+  providerRoutes
+);
+
 /*
 |--------------------------------------------------------------------------
-| 404
+| 404 Handler
 |--------------------------------------------------------------------------
 */
 
@@ -69,7 +77,7 @@ app.use(notFound);
 
 /*
 |--------------------------------------------------------------------------
-| Error handler
+| Global Error Handler
 |--------------------------------------------------------------------------
 */
 
@@ -77,7 +85,7 @@ app.use(errorHandler);
 
 /*
 |--------------------------------------------------------------------------
-| Start server
+| Start Server
 |--------------------------------------------------------------------------
 */
 
@@ -87,6 +95,6 @@ app.listen(env.port, () => {
   );
 
   console.log(
-    `Environment: ${env.nodeEnv}`
+    `🌍 Environment: ${env.nodeEnv}`
   );
 });
