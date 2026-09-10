@@ -3,6 +3,10 @@ import {
   getShotstackRender
 } from "../services/editors/shotstack.service.js";
 
+import {
+  buildShotstackInput
+} from "../services/pipeline/editor-input.service.js";
+
 
 /*
 |--------------------------------------------------------------------------
@@ -16,31 +20,25 @@ export async function createShotstack(
   next
 ) {
   try {
-    const edit = req.body;
+    const {
+      videoUrl,
+      edit = {}
+    } = req.body || {};
 
-    if (
-      !edit ||
-      typeof edit !== "object" ||
-      Array.isArray(edit)
-    ) {
-      return res.status(400).json({
-        error: "VALIDATION_ERROR",
-
-        message:
-          "A Shotstack Edit JSON object is required"
+    const editInput =
+      buildShotstackInput({
+        videoUrl,
+        edit
       });
-    }
 
     const result =
       await createShotstackRender(
-        edit
+        editInput
       );
 
     res.status(202).json({
       success: true,
-
       provider: "shotstack",
-
       result
     });
 
@@ -66,15 +64,6 @@ export async function getShotstack(
       renderId
     } = req.params;
 
-    if (!renderId) {
-      return res.status(400).json({
-        error: "VALIDATION_ERROR",
-
-        message:
-          "renderId is required"
-      });
-    }
-
     const result =
       await getShotstackRender(
         renderId
@@ -82,9 +71,7 @@ export async function getShotstack(
 
     res.json({
       success: true,
-
       provider: "shotstack",
-
       result
     });
 
