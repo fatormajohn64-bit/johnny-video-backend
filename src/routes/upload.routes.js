@@ -1,19 +1,22 @@
 import { Router } from "express";
 
 import {
-  uploadVideo
-} from "../middleware/upload.middleware.js";
-
-import {
-  upload
+  createUploadUrl
 } from "../controllers/upload.controller.js";
 
 const router = Router();
 
+
+/*
+|--------------------------------------------------------------------------
+| Create provider upload URL
+|--------------------------------------------------------------------------
+*/
+
 router.post(
-  "/video",
-  uploadVideo,
-  upload
+  "/url",
+  createUploadUrl
 );
+
 
 export default router;
