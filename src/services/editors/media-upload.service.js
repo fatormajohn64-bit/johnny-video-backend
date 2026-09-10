@@ -7,6 +7,13 @@ const JSON2VIDEO_URL =
 const SHOTSTACK_INGEST_URL =
   "https://api.shotstack.io/ingest";
 
+
+/*
+|--------------------------------------------------------------------------
+| Generic JSON request
+|--------------------------------------------------------------------------
+*/
+
 async function request(
   url,
   options = {}
@@ -15,7 +22,7 @@ async function request(
     ...options,
 
     headers: {
-      "Accept": "application/json",
+      Accept: "application/json",
       "Content-Type": "application/json",
       ...(options.headers || {})
     }
@@ -27,11 +34,13 @@ async function request(
   if (!response.ok) {
     throw new HttpError(
       response.status,
+
       data?.message ||
         data?.error ||
         data?.response?.message ||
-        "Media upload request failed",
-      "MEDIA_UPLOAD_ERROR"
+        "Media request failed",
+
+      "MEDIA_PROVIDER_ERROR"
     );
   }
 
@@ -41,7 +50,7 @@ async function request(
 
 /*
 |--------------------------------------------------------------------------
-| JSON2Video upload URL
+| JSON2Video
 |--------------------------------------------------------------------------
 */
 
@@ -71,10 +80,7 @@ export async function createJson2VideoUpload({
       body: JSON.stringify({
         name,
         contentType,
-        size,
-
-        // Temporary provider-side storage
-        folder: "temp"
+        size
       })
     }
   );
@@ -83,7 +89,7 @@ export async function createJson2VideoUpload({
 
 /*
 |--------------------------------------------------------------------------
-| Shotstack upload URL
+| Shotstack
 |--------------------------------------------------------------------------
 */
 
@@ -100,6 +106,45 @@ export async function createShotstackUpload() {
     `${SHOTSTACK_INGEST_URL}/stage/upload`,
     {
       method: "POST",
+
+      headers: {
+        "x-api-key":
+          env.shotstackApiKey
+      }
+    }
+  );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Shotstack ingest status
+|--------------------------------------------------------------------------
+*/
+
+export async function getShotstackUploadStatus(
+  id
+) {
+  if (!env.shotstackApiKey) {
+    throw new HttpError(
+      503,
+      "SHOTSTACK_API_KEY is not configured",
+      "PROVIDER_NOT_CONFIGURED"
+    );
+  }
+
+  if (!id) {
+    throw new HttpError(
+      400,
+      "Upload ID is required",
+      "UPLOAD_ID_REQUIRED"
+    );
+  }
+
+  return request(
+    `${SHOTSTACK_INGEST_URL}/source/${encodeURIComponent(id)}`,
+    {
+      method: "GET",
 
       headers: {
         "x-api-key":
